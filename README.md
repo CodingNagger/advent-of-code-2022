@@ -25,4 +25,4 @@ However last year, [unlike 2020](https://www.codingnagger.com/tag/advent-of-code
 much of my time was consumed plus I was in Paris with family from the 22nd. I will try to take it a little
 further this year.
 
-- [The Advent of Code 2022 Day 1 log, TBC](https://www.codingnagger.com/)
+- [The Advent of Code 2022 Day 1 log, calories counting](https://www.codingnagger.com/2022/12/01/the-advent-of-code-2022-day-1-log-calories-counting/)
