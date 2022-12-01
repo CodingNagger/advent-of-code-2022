@@ -15,13 +15,13 @@ class Day1Test {
     void partOne_shouldReturnIncreaseCount() {
         String result = DAY_1.partOne(INPUT);
 
-        assertThat(result).isEqualTo("");
+        assertThat(result).isEqualTo("24000");
     }
 
     @Test
     void partTwo_shouldReturnSlidingIncreaseCount() {
         String result = DAY_1.partTwo(INPUT);
 
-        assertThat(result).isEqualTo("");
+        assertThat(result).isEqualTo("45000");
     }
 }
