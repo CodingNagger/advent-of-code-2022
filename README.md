@@ -7,13 +7,13 @@ on [Minds @CodingNagger](https://minds.com/CodingNagger).
 ## How to run it
 
 ```
-mvn clean compile exec:java
+./mvnw clean compile exec:java
 ```
 
 ## Running tests
 
 ```
-mvn clean test
+./mvnw clean test
 ```
 
 ## Cruise log

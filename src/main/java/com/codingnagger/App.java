@@ -1,7 +1,7 @@
 package com.codingnagger;
 
 import com.codingnagger.days.Day;
-import com.codingnagger.days.Day1;
+import com.codingnagger.days.Day2;
 import com.codingnagger.utils.InputLoader;
 
 import java.io.IOException;
@@ -14,9 +14,9 @@ public class App {
     public static void main(String[] args) throws IOException {
         System.out.println("Advent of Code 2022");
 
-        List<String> input = InputLoader.Load("day1.txt");
+        List<String> input = InputLoader.Load("day2.txt");
 
-        Day day = new Day1();
+        Day day = new Day2();
 
         System.out.println("Part 1:");
         System.out.println(day.partOne(input));
