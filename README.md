@@ -28,3 +28,4 @@ further this year.
 - [The Advent of Code 2022 Day 1 log, calories counting](https://www.codingnagger.com/2022/12/01/the-advent-of-code-2022-day-1-log-calories-counting/)
 - [The Advent of Code 2022 Day 2 log: rock, paper, cheater](https://www.codingnagger.com/2022/12/02/the-advent-of-code-2022-day-2-log-rock-paper-cheater/)
 - [The Advent of Code 2022 Day 3 log: return of the rucksack](https://www.codingnagger.com/2022/12/03/the-advent-of-code-2022-day-3-log-return-of-the-rucksack/)
+- [The Advent of Code 2022 Day 3 log: return of the rucksack](https://www.codingnagger.com/2022/12/03/the-advent-of-code-2022-day-3-log-return-of-the-rucksack/)
