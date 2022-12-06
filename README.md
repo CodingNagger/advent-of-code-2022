@@ -30,3 +30,4 @@ further this year.
 - [The Advent of Code 2022 Day 3 log: return of the rucksack](https://www.codingnagger.com/2022/12/03/the-advent-of-code-2022-day-3-log-return-of-the-rucksack/)
 - [The Advent of Code 2022 Day 4 log: camp cleanup](https://www.codingnagger.com/2022/12/04/the-advent-of-code-2022-day-4-log-camp-cleanup/)
 - [The Advent of Code 2022 Day 5 log: flipping stacks](https://www.codingnagger.com/2022/12/05/the-advent-of-code-2022-day-5-log-flipping-stacks/)
+- [The Advent of Code 2022 Day 6 log: signals everywhere](https://www.codingnagger.com/2022/12/06/the-advent-of-code-2022-day-6-log-signals-everywhere/)
