@@ -3,7 +3,6 @@ package com.codingnagger.days;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Day7 implements Day {
     @Override
@@ -96,12 +95,12 @@ public class Day7 implements Day {
         Directory current = null;
 
         public Directory parse(List<String> commands) {
-            for (var i = 0; i < commands.size(); ) {
+            for (var i = 0; i < commands.size() - 1; ) {
                 var command = commands.get(i);
 
                 if (command.startsWith("$")) {
                     i = parseAndExecuteCommand(command.substring(2), i, commands);
-                } else i++;
+                }
             }
 
             return root;
@@ -116,14 +115,12 @@ public class Day7 implements Day {
 
                 if (params.equals("/")) {
                     root = current = new Directory(null);
-                }
-                else {
+                } else {
                     current = current.getDirectory(params);
                 }
 
-                return index+1;
-            }
-            else if (exe.equals("ls")) {
+                return index + 1;
+            } else if (exe.equals("ls")) {
                 String nextFile;
                 do {
                     index++;
@@ -133,11 +130,10 @@ public class Day7 implements Day {
 
                     if (nextFile.matches("^[0-9]+ .*$")) {
                         current.addFile(fileInfo[1], Long.parseLong(fileInfo[0]));
-                    }
-                    else if (nextFile.startsWith("dir")) {
+                    } else if (nextFile.startsWith("dir")) {
                         current.makeDirectory(fileInfo[1]);
                     }
-                } while (!nextFile.startsWith("$") && index < commands.size()-1);
+                } while (!nextFile.startsWith("$") && index < commands.size() - 1);
 
                 return index;
             }
