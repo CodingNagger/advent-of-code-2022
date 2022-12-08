@@ -32,3 +32,4 @@ further this year.
 - [The Advent of Code 2022 Day 5 log: flipping stacks](https://www.codingnagger.com/2022/12/05/the-advent-of-code-2022-day-5-log-flipping-stacks/)
 - [The Advent of Code 2022 Day 6 log: signals everywhere](https://www.codingnagger.com/2022/12/06/the-advent-of-code-2022-day-6-log-signals-everywhere/)
 - [The Advent of Code 2022 Day 7 log: spaced out](https://www.codingnagger.com/2022/12/07/the-advent-of-code-2022-day-7-log-spaced-out/)
+- [The Advent of Code 2022 Day 8 log: cabin in the woods](https://www.codingnagger.com/2022/12/08/the-advent-of-code-2022-day-8-log-cabin-in-the-woods/)
