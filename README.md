@@ -34,3 +34,5 @@ further this year.
 - [The Advent of Code 2022 Day 7 log: spaced out](https://www.codingnagger.com/2022/12/07/the-advent-of-code-2022-day-7-log-spaced-out/)
 - [The Advent of Code 2022 Day 8 log: cabin in the woods](https://www.codingnagger.com/2022/12/08/the-advent-of-code-2022-day-8-log-cabin-in-the-woods/)
 - [The Advent of Code 2022 Day 9 log: rope physics](https://www.codingnagger.com/2022/12/09/the-advent-of-code-2022-day-9-log-rope-physics/)
+- [The Advent of Code 2022 Day 10 log: pixel perfect](https://www.codingnagger.com/2022/12/10/the-advent-of-code-2022-day-10-log-pixel-perfect/)
+- [The Advent of Code 2022 Day 11 log: monkey business](https://www.codingnagger.com/2022/12/11/the-advent-of-code-2022-day-11-log-monkey-business/)
