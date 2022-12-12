@@ -36,3 +36,4 @@ further this year.
 - [The Advent of Code 2022 Day 9 log: rope physics](https://www.codingnagger.com/2022/12/09/the-advent-of-code-2022-day-9-log-rope-physics/)
 - [The Advent of Code 2022 Day 10 log: pixel perfect](https://www.codingnagger.com/2022/12/10/the-advent-of-code-2022-day-10-log-pixel-perfect/)
 - [The Advent of Code 2022 Day 11 log: monkey business](https://www.codingnagger.com/2022/12/11/the-advent-of-code-2022-day-11-log-monkey-business/)
+- [The Advent of Code 2022 Day 12 log: elevated view](https://www.codingnagger.com/2022/12/12/the-advent-of-code-2022-day-12-log-elevated-view/)
