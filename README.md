@@ -37,3 +37,5 @@ further this year.
 - [The Advent of Code 2022 Day 10 log: pixel perfect](https://www.codingnagger.com/2022/12/10/the-advent-of-code-2022-day-10-log-pixel-perfect/)
 - [The Advent of Code 2022 Day 11 log: monkey business](https://www.codingnagger.com/2022/12/11/the-advent-of-code-2022-day-11-log-monkey-business/)
 - [The Advent of Code 2022 Day 12 log: elevated view](https://www.codingnagger.com/2022/12/12/the-advent-of-code-2022-day-12-log-elevated-view/)
+- [The Advent of Code 2022 Day 13 log: Russian dolls](https://www.codingnagger.com/2022/12/13/the-advent-of-code-2022-day-13-log-russian-dolls/)
+- [The Advent of Code 2022 Day 14 log: the sands of time](https://www.codingnagger.com/2022/12/14/the-advent-of-code-2022-day-14-log-the-sands-of-time/)
