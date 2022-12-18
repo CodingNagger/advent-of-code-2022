@@ -19,6 +19,35 @@ class Day15Test {
     }
 
     @Test
+    void maybeLocationRange() {
+        var sensor = new Day15.Sensor(2, 2, new Day15.Beacon(3, 3));
+
+        var possibleLocationRange = sensor.maybeLocationRange(2);
+
+        assertThat(possibleLocationRange)
+                .isPresent()
+                .get()
+                .isEqualTo(new Day15.LocationRange(2, 0, 4));
+
+        possibleLocationRange = sensor.maybeLocationRange(4);
+
+        assertThat(possibleLocationRange)
+                .isPresent()
+                .get()
+                .isEqualTo(new Day15.LocationRange(4, 2, 2));
+
+        possibleLocationRange = sensor.maybeLocationRange(-1);
+
+        assertThat(possibleLocationRange)
+                .isEmpty();
+
+        possibleLocationRange = sensor.maybeLocationRange(5);
+
+        assertThat(possibleLocationRange)
+                .isEmpty();
+    }
+
+    @Test
     void partTwo() {
         String result = DAY.partTwo(INPUT);
 

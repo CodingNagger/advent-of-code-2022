@@ -1,9 +1,6 @@
 package com.codingnagger.days;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Day15 implements Day {
@@ -38,20 +35,26 @@ public class Day15 implements Day {
             this.xEnd = xEnd;
         }
 
-        LocationRange merge(LocationRange locationRange) {
-            assert canMerge(locationRange);
+        LocationRange merge(Collection<LocationRange> locationRanges) {
+            assert locationRanges.stream().allMatch(this::canMerge);
 
-            return new LocationRange(y, Math.min(xStart, locationRange.xStart), Math.max(xEnd, locationRange.xEnd));
+            return new LocationRange(y,
+                    Math.min(xStart, locationRanges.stream().mapToLong(r -> r.xStart).min().getAsLong()),
+                    Math.max(xEnd, locationRanges.stream().mapToLong(r -> r.xEnd).max().getAsLong()));
         }
 
         private boolean canMerge(LocationRange locationRange) {
             return containsEdge(locationRange) || locationRange.containsEdge(this);
         }
 
-        List<LocationRange> split(long x) {
-            assert containsX(x);
+        private boolean canSplitWith(Location location) {
+            return y == location.y && containsX(location.x);
+        }
 
-            return List.of(new LocationRange(y, xStart, x - 1), new LocationRange(y, x + 1, xEnd));
+        List<LocationRange> split(Location location) {
+            assert containsX(location.x);
+
+            return List.of(new LocationRange(y, xStart, location.x - 1), new LocationRange(y, location.x + 1, xEnd));
         }
 
         private boolean contains(LocationRange locationRange) {
@@ -80,6 +83,43 @@ public class Day15 implements Day {
                     ", xEnd=" + xEnd +
                     '}';
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            LocationRange that = (LocationRange) o;
+            return y == that.y && xStart == that.xStart && xEnd == that.xEnd;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(y, xStart, xEnd);
+        }
+
+        public boolean canSubstract(LocationRange locationRange) {
+            return !locationRange.contains(this) && y == locationRange.y &&
+                    (containsX(locationRange.xStart) || containsX(locationRange.xEnd));
+        }
+
+        public List<LocationRange> substract(LocationRange locationRange) {
+            if (contains(locationRange)) {
+                return List.of(
+                        new LocationRange(y, xStart, locationRange.xStart - 1),
+                        new LocationRange(y, locationRange.xEnd + 1, xEnd)
+                );
+            } else if (containsX(locationRange.xStart)) {
+                return List.of(
+                        new LocationRange(y, xStart, locationRange.xStart - 1)
+                );
+            } else if (containsX(locationRange.xEnd)) {
+                return List.of(
+                        new LocationRange(y, locationRange.xEnd + 1, xEnd)
+                );
+            }
+
+            return List.of(this);
+        }
     }
 
     static class SensorMap {
@@ -89,74 +129,124 @@ public class Day15 implements Day {
             sensors = input.stream().map(Sensor::parse).collect(Collectors.toSet());
         }
 
-        public int countLocationsBeaconsCantBe(long row) {
-            return locationsBeaconCantBe(row).size();
-        }
-
         public long alternateCountLocationsBeaconsCantBe(long row) {
-            return locationRangesBeaconCantBe(row).stream().mapToLong(LocationRange::size).sum();
+            return locationRangesBeaconCantBe(row, false).stream().mapToLong(LocationRange::size).sum();
         }
 
-        Set<Location> locationsBeaconCantBe(long row) {
-            var result = new HashSet<Location>();
+        Set<LocationRange> locationRangesBeaconCanBe(long minBound, long maxBound, long row) {
+            var impossibleLocationRanges = locationRangesBeaconCantBe(row, true);
 
-            for (var sensor : sensors) {
-                var minCandidateX = sensor.x - sensor.closestBeaconManhattanDistance();
-                var maxCandidateX = sensor.x + sensor.closestBeaconManhattanDistance();
+            var searchableRanges = Set.of(new LocationRange(row, minBound, maxBound));
+            HashSet<LocationRange> substractedRanges;
 
-                for (var x = minCandidateX; x <= maxCandidateX; x++) {
-                    if (sensor.y == row && sensor.x == x) {
-                        continue;
-                    }
+            var splitSomething = true;
 
-                    if (sensor.closestBeacon.y == row && sensor.closestBeacon.x == x) {
-                        continue;
-                    }
+            while (splitSomething) {
+                substractedRanges = new HashSet<>();
+                splitSomething = false;
 
-                    var location = new Location(x, row);
+                for (var range : searchableRanges) {
+                    var impossibleRange = impossibleLocationRanges.stream()
+                            .filter(range::canSubstract)
+                            .findFirst();
 
-                    if (sensor.manhattanDistance(location) <= sensor.closestBeaconManhattanDistance()) {
-                        result.add(location);
+                    if (impossibleRange.isPresent()) {
+                        substractedRanges.addAll(range.substract(impossibleRange.get()));
+                        splitSomething = true;
+                    } else {
+                        substractedRanges.add(range);
                     }
                 }
+
+                searchableRanges = substractedRanges;
             }
 
-            return result;
+            return searchableRanges;
         }
 
-        Set<LocationRange> locationRangesBeaconCantBe(long row) {
-            var result = new HashSet<LocationRange>();
+        Set<LocationRange> locationRangesBeaconCantBe(long row, boolean includeBeacons) {
+            var ranges = new HashSet<LocationRange>();
 
             for (var sensor : sensors) {
-                var candidateRange = new LocationRange(row, sensor.x - 1 - sensor.closestBeaconManhattanDistance(), sensor.x - 1 + sensor.closestBeaconManhattanDistance());
+                final var maybeLocationRange = sensor.maybeLocationRange(row);
 
-//                var candidateContainer = result.stream().filter(r -> r.contains(candidateRange)).findFirst();
-//
-//                if (candidateContainer.isPresent()) {
-//                    continue;
-//                }
-//
-//                var candidateContent = result.stream().filter(candidateRange::contains).findFirst();
-//
-//                if (candidateContent.isPresent()) {
-//                    result.remove(candidateContent.get());
-//                    result.add(candidateRange);
-//                } else {
-//                    result.add(candidateRange);
-//                }
-//
-//                var mergeCandidate = result.stream().filter(candidateRange::canMerge).findFirst();
-//
-//                if (mergeCandidate.isPresent()) {
-//                    result.remove(mergeCandidate.get());
-//                    result.add(candidateRange.merge(mergeCandidate.get()));
-//                } else {
-//                    result.add(candidateRange);
-//                }
-                result.add(candidateRange);
+                if (maybeLocationRange.isEmpty()) {
+                    continue;
+                }
+
+                final var locationRange = maybeLocationRange.get();
+
+                var candidateContainer = ranges.stream().filter(r -> r.contains(locationRange)).findFirst();
+
+                if (candidateContainer.isPresent()) {
+                    continue;
+                }
+
+                var candidateContent = ranges.stream().filter(locationRange::contains).findFirst();
+                candidateContent.ifPresent(ranges::remove);
+
+                ranges.add(locationRange);
             }
 
-            return result;
+            var mergedRanges = ranges;
+            HashSet<LocationRange> newRanges;
+
+            var mergedSomething = true;
+
+            while (mergedSomething) {
+                newRanges = new HashSet<>();
+                mergedSomething = false;
+
+                for (var range : mergedRanges) {
+                    var mergeableRanges = mergedRanges.stream()
+                            .filter(range::canMerge)
+                            .filter(r -> !r.equals(range))
+                            .collect(Collectors.toUnmodifiableList());
+
+                    if (mergeableRanges.isEmpty()) {
+                        newRanges.add(range);
+                    } else {
+                        newRanges.add(range.merge(mergeableRanges));
+                        mergedSomething = true;
+                    }
+                }
+
+                mergedRanges = newRanges;
+            }
+
+            if (includeBeacons) {
+                return mergedRanges;
+            }
+
+            var beacons = sensors.stream().map(s -> s.closestBeacon).distinct().collect(Collectors.toUnmodifiableList());
+
+            var splitRanges = mergedRanges;
+
+            HashSet<LocationRange> newSplitRanges;
+
+            var splitSomething = true;
+
+            while (splitSomething) {
+                newSplitRanges = new HashSet<>();
+                splitSomething = false;
+
+                for (var range : splitRanges) {
+                    var splitter = beacons.stream()
+                            .filter(range::canSplitWith)
+                            .findFirst();
+
+                    if (splitter.isPresent()) {
+                        newSplitRanges.addAll(range.split(splitter.get()));
+                        splitSomething = true;
+                    } else {
+                        newSplitRanges.add(range);
+                    }
+                }
+
+                splitRanges = newSplitRanges;
+            }
+
+            return splitRanges;
         }
 
         private SensorMap prettyPrint() {
@@ -210,30 +300,44 @@ public class Day15 implements Day {
 
         public long distressBeaconTuningFrenquency(long maxBound) {
 
-            var reliableSensors = sensors.stream()
-                    .filter(s ->
-                            s.closestBeacon.x >= 0 && s.closestBeacon.x <= maxBound &&
-                                    s.closestBeacon.y >= 0 && s.closestBeacon.y <= maxBound
-                    ).collect(Collectors.toSet());
-//            var candidateLocations = new HashSet<Location>();
-//
-//            for (var y = 0L; y <= maxBound; y++) {
-//                for (var x = 0L; x <= maxBound; x++) {
-//                    candidateLocations.add(new Location(x, y));
-//                }
-//            }
+            var possibleLocations = new HashMap<Location, Integer>();
 
-            for (var y = 0; y <= maxBound; y++) {
-                for (var x = 0; x <= maxBound; x++) {
-                    final var location = new Location(x, y);
+            for (var sensor : sensors) {
+                var edgeDistance = sensor.closestBeaconManhattanDistance() + 1;
 
-                    if (sensors.stream().allMatch(s -> s.manhattanDistance(location) > s.closestBeaconManhattanDistance())) {
-                        return 4000000 * location.x + location.y;
+                for (var x = -edgeDistance; x <= edgeDistance; x++) {
+                    var gap = edgeDistance - Math.abs(x);
+
+                    final var plusGapLocation = new Location(sensor.x + x, sensor.y + gap);
+
+                    if (plusGapLocation.x <= maxBound && plusGapLocation.y <= maxBound
+                            && plusGapLocation.x >= 0 && plusGapLocation.y >= 0) {
+//                        System.out.printf("plus check: %s%n", plusGapLocation);
+
+                        if (sensors.stream().allMatch(s -> s.manhattanDistance(plusGapLocation) > s.closestBeaconManhattanDistance())) {
+                            possibleLocations.put(plusGapLocation, possibleLocations.getOrDefault(plusGapLocation, 0) + 1);
+                        }
+                    }
+
+                    final var minusGapLocation = new Location(sensor.x + x, sensor.y - gap);
+
+                    if (minusGapLocation.x <= maxBound && minusGapLocation.y <= maxBound
+                            && minusGapLocation.x >= 0 && minusGapLocation.y >= 0) {
+//                        System.out.printf("minus check: %s%n", minusGapLocation);
+
+                        if (sensors.stream().allMatch(s -> s.manhattanDistance(minusGapLocation) > s.closestBeaconManhattanDistance() + 1)) {
+                            possibleLocations.put(minusGapLocation, possibleLocations.getOrDefault(minusGapLocation, 0) + 1);
+                        }
                     }
                 }
             }
 
-            throw new RuntimeException("Shouldn't be here");
+            var highestCount = possibleLocations.values().stream().mapToInt(v -> v).max().getAsInt();
+            var bestLocations = possibleLocations.entrySet().stream().filter(e -> e.getValue().equals(highestCount))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toUnmodifiableList());
+
+            return 4000000 * bestLocations.get(0).x + bestLocations.get(0).y;
         }
     }
 
@@ -271,6 +375,19 @@ public class Day15 implements Day {
         @Override
         public String toString() {
             return super.toString() + " - closest beacon at " + closestBeacon.toString();
+        }
+
+        public Optional<LocationRange> maybeLocationRange(long row) {
+            var rangeDepth = closestBeaconManhattanDistance();
+
+            if (row > y + rangeDepth || row < y - rangeDepth) {
+                return Optional.empty();
+            }
+
+            var gap = Math.abs(row - y);
+            var xGap = Math.abs(rangeDepth - gap);
+
+            return Optional.of(new LocationRange(row, x - xGap, x + xGap));
         }
     }
 
@@ -313,7 +430,7 @@ public class Day15 implements Day {
         }
     }
 
-    private static class Beacon extends Location {
+    static class Beacon extends Location {
         Beacon(long x, long y) {
             super(x, y);
         }
