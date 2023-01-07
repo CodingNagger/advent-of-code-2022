@@ -42,4 +42,5 @@ further this year.
 - [The Advent of Code 2022 Day 15 log: playing catch-up](https://www.codingnagger.com/2022/12/18/the-advent-of-code-2022-day-15-log-playing-catch-up/)
 - [The Advent of Code 2022 Day 16: busy times](https://www.codingnagger.com/2022/12/31/the-advent-of-code-2022-day-16-busy-times/)
 - [The Advent of Code 2022 Day 17: free fall](https://www.codingnagger.com/2023/01/04/the-advent-of-code-2022-day-17-free-fall/)
+- [The Advent of Code 2022 Day 18: lava is lava](https://www.codingnagger.com/2023/01/07/the-advent-of-code-2022-day-18-lava-is-lava/)
 - [The Advent of Code 2022 Day 21: Monkey maths](https://www.codingnagger.com/2022/12/21/the-advent-of-code-2022-day-21-monkey-maths/)
