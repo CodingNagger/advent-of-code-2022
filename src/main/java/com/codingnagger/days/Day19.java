@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.codingnagger.days.Day19.Blueprint.*;
+import static com.codingnagger.utils.Debugger.writeDebugLine;
 
 public class Day19 implements Day {
     @Override
@@ -70,7 +71,8 @@ public class Day19 implements Day {
                             OBSIDIAN, 0L,
                             GEODE, 0L
                     ),
-                    0L);
+                    0L,
+                    null);
 
             var queue = new PriorityQueue<State>();
             queue.add(start);
@@ -88,7 +90,7 @@ public class Day19 implements Day {
                         continue;
                     }
 
-                    current.maybeNextStateForBuildingRobotFor(this, resource).ifPresent(possibleStates::add);
+                    current.maybeNextStateForBuildingRobotFor(this, resource, maxDuration).ifPresent(possibleStates::add);
                 }
 
                 if (possibleStates.isEmpty()) {
@@ -101,6 +103,7 @@ public class Day19 implements Day {
                 queue.addAll(statesUpToMaxDuration);
             }
 
+            writeDebugLine("Quality level for blueprint %d with %d geodes open = %d", id, maxGeodes, id * maxGeodes);
             return id * maxGeodes;
         }
     }
@@ -110,12 +113,12 @@ public class Day19 implements Day {
         final Map<String, Long> resources;
         private final Long minutes;
 
-        State(Map<String, Long> robots, Map<String, Long> resources, Long minutes) {
+        State(Map<String, Long> robots, Map<String, Long> resources, Long minutes, State parent) {
             this.robots = Collections.unmodifiableMap(robots);
             this.resources = Collections.unmodifiableMap(resources);
             this.minutes = minutes;
 
-//            System.out.println(this);
+            writeDebugLine("New state created [%s] from parent [%s]", this, parent);
         }
 
         private static String serialiseMap(Map<String, Long> map) {
@@ -136,7 +139,7 @@ public class Day19 implements Day {
             return geodesCount().compareTo(o.geodesCount());
         }
 
-        private Optional<Long> maybeMinBuildWaitIfBuildable(Blueprint blueprint, String resource) {
+        private Optional<Long> maybeMinBuildWaitIfBuildable(Blueprint blueprint, String resource, long maxDuration) {
             var resourceRobotCost = blueprint.robotCost.get(resource);
 
             if (resourceRobotCost.keySet().stream().anyMatch(r -> !robots.containsKey(r) || robots.get(r) == 0L)) {
@@ -156,9 +159,9 @@ public class Day19 implements Day {
                     .orElseThrow() + 1);
         }
 
-        public Optional<State> maybeNextStateForBuildingRobotFor(Blueprint blueprint, String resource) {
+        public Optional<State> maybeNextStateForBuildingRobotFor(Blueprint blueprint, String resource, long maxDuration) {
 
-            var maybeMinBuildWait = maybeMinBuildWaitIfBuildable(blueprint, resource);
+            var maybeMinBuildWait = maybeMinBuildWaitIfBuildable(blueprint, resource, maxDuration);
 
             if (maybeMinBuildWait.isEmpty()) {
                 return Optional.empty();
@@ -177,10 +180,17 @@ public class Day19 implements Day {
             this.robots.forEach((robot, count) ->
                     nextStateResources.put(robot, nextStateResources.getOrDefault(robot, 0L) + count * minBuildWait));
 
+            var nextStateMinutes = this.minutes + minBuildWait;
+
+            if (nextStateMinutes > maxDuration) {
+                return Optional.empty();
+            }
+
             return Optional.of(new State(
                     nextStateRobots,
                     nextStateResources,
-                    this.minutes + minBuildWait
+                    this.minutes + minBuildWait,
+                    this
             ));
         }
 
@@ -192,7 +202,8 @@ public class Day19 implements Day {
             return new State(
                     this.robots,
                     nextStateResources,
-                    this.minutes + 1
+                    this.minutes + 1,
+                    this
             );
         }
 
@@ -202,7 +213,7 @@ public class Day19 implements Day {
 
         @Override
         public String toString() {
-            return String.format("Minute %d - Robots %s - Resources %s", minutes, serialiseMap(robots), serialiseMap(resources));
+            return String.format("Minute %d\t- Robots %s\t- Resources %s", minutes, serialiseMap(robots), serialiseMap(resources));
         }
     }
 }
