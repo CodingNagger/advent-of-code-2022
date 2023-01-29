@@ -7,72 +7,91 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.codingnagger.days.Day19.Blueprint.*;
-import static com.codingnagger.utils.Debugger.writeDebugLine;
 
 public class Day19 implements Day {
     @Override
     public String partOne(List<String> input) {
-        return input.stream().map(Blueprint::new).mapToLong(Blueprint::qualityLevel).sum() + "";
+        return input.stream().map(Blueprint::new).mapToInt(Blueprint::qualityLevel).sum() + "";
     }
 
     @Override
     public String partTwo(List<String> input) {
-        return null;
+        return "" + (
+                new Blueprint(input.get(0)).maxGeodes(32)
+                        * new Blueprint(input.get(1)).maxGeodes(32)
+                        * (input.size() > 2 ? new Blueprint(input.get(2)).maxGeodes(32) : 1)
+        );
     }
 
     static class Blueprint {
         public static final String GEODE = "geode";
+        public static final List<String> GEODES_ONLY = List.of(GEODE);
         public static final String OBSIDIAN = "obsidian";
         public static final String CLAY = "clay";
         public static final String ORE = "ore";
-        private final long id;
-        private final Map<String, Map<String, Long>> robotCost;
+        public static final List<String> ALL = List.of(GEODE, OBSIDIAN, CLAY, ORE);
+        public static final List<String> ONLY_USEFUL_FOR_LAST_ROUND_GEODES = List.of(GEODE, OBSIDIAN, ORE);
+        private final int id;
+        private final Map<String, Map<String, Integer>> robotCost;
 
         Blueprint(String description) {
             var idAndRobots = description.split(": ");
-            this.id = Long.parseLong(idAndRobots[0].substring("Blueprint ".length()));
+            this.id = Integer.parseInt(idAndRobots[0].substring("Blueprint ".length()));
             this.robotCost = new HashMap<>();
 
             Pattern pattern = Pattern.compile("Each ([a-z]+) robot costs (\\d+) ([a-z]+)( and (\\d+) ([a-z]+))?");
             Matcher matcher = pattern.matcher(idAndRobots[1]);
 
             while (matcher.find()) {
-                var costs = new HashMap<String, Long>();
+                var costs = new HashMap<String, Integer>();
 
-                costs.put(matcher.group(3), Long.parseLong(matcher.group(2)));
+                costs.put(matcher.group(3), Integer.parseInt(matcher.group(2)));
                 if (matcher.group(4) != null) {
-                    costs.put(matcher.group(6), Long.parseLong(matcher.group(5)));
+                    costs.put(matcher.group(6), Integer.parseInt(matcher.group(5)));
                 }
 
                 this.robotCost.put(matcher.group(1), costs);
             }
         }
 
-        long qualityLevel() {
+        private static List<String> getRobotCandidatesForMinutesAndMaxDuration(Integer minutes, int maxDuration) {
+            if (minutes == maxDuration - 1) {
+                return GEODES_ONLY;
+            }
+            if (minutes == maxDuration - 2) {
+                return ONLY_USEFUL_FOR_LAST_ROUND_GEODES;
+            }
+            return ALL;
+        }
+
+        int qualityLevel() {
+            return id * maxGeodes(24);
+        }
+
+        int maxGeodes(int maxDuration) {
             var maxRequiredRobots = Stream.of(ORE, CLAY, OBSIDIAN)
                     .collect(Collectors.toMap(
                             resource -> resource,
                             resource -> robotCost.values().stream()
-                                    .mapToLong(v -> v.getOrDefault(resource, 0L)).max().orElseThrow()));
+                                    .mapToInt(v -> v.getOrDefault(resource, 0)).max().orElseThrow()));
 
-            var maxDuration = 24L;
+            var maxGeodes = 0;
 
-            var maxGeodes = 0L;
             var start = new State(
                     Map.of(
-                            ORE, 1L,
-                            CLAY, 0L,
-                            OBSIDIAN, 0L,
-                            GEODE, 0L
+                            ORE, 1,
+                            CLAY, 0,
+                            OBSIDIAN, 0,
+                            GEODE, 0
                     ),
                     Map.of(
-                            ORE, 0L,
-                            CLAY, 0L,
-                            OBSIDIAN, 0L,
-                            GEODE, 0L
+                            ORE, 0,
+                            CLAY, 0,
+                            OBSIDIAN, 0,
+                            GEODE, 0
                     ),
-                    0L,
-                    null);
+                    0
+            );
 
             var queue = new PriorityQueue<State>();
             queue.add(start);
@@ -80,11 +99,23 @@ public class Day19 implements Day {
             while (!queue.isEmpty()) {
                 var current = queue.poll();
 
-                maxGeodes = Math.max(current.geodesCount(), maxGeodes);
+                var currentGeodePotential = current.potentialGeodesAt(maxDuration);
+
+                if (maxGeodes > 0 && currentGeodePotential < maxGeodes) {
+                    continue;
+                }
+
+                var currentGeodesCount = current.geodesCount();
+
+                maxGeodes = Math.max(currentGeodesCount, maxGeodes);
+
+                if (maxDuration == current.minutes) {
+                    continue;
+                }
 
                 var possibleStates = new ArrayList<State>();
 
-                for (var resource : List.of(GEODE, OBSIDIAN, CLAY, ORE)) {
+                for (var resource : getRobotCandidatesForMinutesAndMaxDuration(current.minutes, maxDuration)) {
                     if (maxRequiredRobots.containsKey(resource) &&
                             maxRequiredRobots.get(resource) <= current.robotCount(resource)) {
                         continue;
@@ -97,59 +128,55 @@ public class Day19 implements Day {
                     possibleStates.add(current.nextStateForWaiting());
                 }
 
-                var statesUpToMaxDuration = possibleStates.stream()
-                        .filter(state -> state.minutes <= maxDuration).collect(Collectors.toList());
-
-                queue.addAll(statesUpToMaxDuration);
+                queue.addAll(possibleStates);
             }
 
-            writeDebugLine("Quality level for blueprint %d with %d geodes open = %d", id, maxGeodes, id * maxGeodes);
-            return id * maxGeodes;
+            System.out.printf("Quality level for blueprint %d with %d geodes open = %d%n", id, maxGeodes, id * maxGeodes);
+            return maxGeodes;
         }
     }
 
     static class State implements Comparable<State> {
-        final Map<String, Long> robots;
-        final Map<String, Long> resources;
-        private final Long minutes;
+        final Map<String, Integer> robots;
+        final Map<String, Integer> resources;
+        private final Integer minutes;
 
-        State(Map<String, Long> robots, Map<String, Long> resources, Long minutes, State parent) {
-            this.robots = Collections.unmodifiableMap(robots);
-            this.resources = Collections.unmodifiableMap(resources);
+        State(Map<String, Integer> robots, Map<String, Integer> resources, Integer minutes) {
+            this.robots = robots;
+            this.resources = resources;
             this.minutes = minutes;
-
-            writeDebugLine("New state created [%s] from parent [%s]", this, parent);
         }
 
-        private static String serialiseMap(Map<String, Long> map) {
+        private static String serialiseMap(Map<String, Integer> map) {
             return String.format("%s:%d;%s:%d;%s:%d;%s:%d",
-                    GEODE, map.getOrDefault(GEODE, 0L),
-                    OBSIDIAN, map.getOrDefault(OBSIDIAN, 0L),
-                    CLAY, map.getOrDefault(CLAY, 0L),
-                    ORE, map.getOrDefault(ORE, 0L)
+                    GEODE, map.get(GEODE),
+                    OBSIDIAN, map.get(OBSIDIAN),
+                    CLAY, map.get(CLAY),
+                    ORE, map.get(ORE)
             );
         }
 
-        public Long robotCount(String resource) {
-            return robots.getOrDefault(resource, 0L);
+        public Integer robotCount(String resource) {
+            return robots.get(resource);
         }
 
         @Override
         public int compareTo(State o) {
-            return geodesCount().compareTo(o.geodesCount());
+//            return geodesCount() - o.geodesCount();
+            return minutes - o.minutes;
         }
 
-        private Optional<Long> maybeMinBuildWaitIfBuildable(Blueprint blueprint, String resource, long maxDuration) {
+        private Optional<Integer> maybeMinBuildWaitIfBuildable(Blueprint blueprint, String resource) {
             var resourceRobotCost = blueprint.robotCost.get(resource);
 
-            if (resourceRobotCost.keySet().stream().anyMatch(r -> !robots.containsKey(r) || robots.get(r) == 0L)) {
+            if (resourceRobotCost.keySet().stream().anyMatch(r -> !robots.containsKey(r) || robots.get(r) == 0)) {
                 return Optional.empty();
             }
 
             return Optional.of(resourceRobotCost.keySet().stream()
-                    .mapToLong(r ->
-                            (long) Math.max(
-                                    0L,
+                    .mapToInt(r ->
+                            (int) Math.max(
+                                    0,
                                     Math.ceil(
                                             (resourceRobotCost.get(r) - resources.get(r)) / robotCount(r).floatValue()
                                     )
@@ -159,18 +186,22 @@ public class Day19 implements Day {
                     .orElseThrow() + 1);
         }
 
-        public Optional<State> maybeNextStateForBuildingRobotFor(Blueprint blueprint, String resource, long maxDuration) {
-
-            var maybeMinBuildWait = maybeMinBuildWaitIfBuildable(blueprint, resource, maxDuration);
+        public Optional<State> maybeNextStateForBuildingRobotFor(Blueprint blueprint, String resource, int maxDuration) {
+            var maybeMinBuildWait = maybeMinBuildWaitIfBuildable(blueprint, resource);
 
             if (maybeMinBuildWait.isEmpty()) {
                 return Optional.empty();
             }
 
             var minBuildWait = maybeMinBuildWait.get();
+            var nextStateMinutes = this.minutes + minBuildWait;
+
+            if (nextStateMinutes > maxDuration) {
+                return Optional.empty();
+            }
 
             var nextStateRobots = new HashMap<>(this.robots);
-            nextStateRobots.put(resource, nextStateRobots.getOrDefault(resource, 0L) + 1);
+            nextStateRobots.put(resource, nextStateRobots.get(resource) + 1);
 
             var postPurchaseResources = new HashMap<>(this.resources);
             blueprint.robotCost.get(resource).forEach(
@@ -178,42 +209,38 @@ public class Day19 implements Day {
 
             var nextStateResources = new HashMap<>(postPurchaseResources);
             this.robots.forEach((robot, count) ->
-                    nextStateResources.put(robot, nextStateResources.getOrDefault(robot, 0L) + count * minBuildWait));
-
-            var nextStateMinutes = this.minutes + minBuildWait;
-
-            if (nextStateMinutes > maxDuration) {
-                return Optional.empty();
-            }
+                    nextStateResources.put(robot, nextStateResources.get(robot) + count * minBuildWait));
 
             return Optional.of(new State(
                     nextStateRobots,
                     nextStateResources,
-                    this.minutes + minBuildWait,
-                    this
+                    nextStateMinutes
             ));
         }
 
         public State nextStateForWaiting() {
             var nextStateResources = new HashMap<>(this.resources);
             this.robots.forEach((robot, count) ->
-                    nextStateResources.put(robot, nextStateResources.getOrDefault(robot, 0L) + count));
+                    nextStateResources.put(robot, nextStateResources.get(robot) + count));
 
             return new State(
-                    this.robots,
+                    new HashMap<>(this.robots),
                     nextStateResources,
-                    this.minutes + 1,
-                    this
+                    this.minutes + 1
             );
         }
 
-        public Long geodesCount() {
-            return resources.getOrDefault(GEODE, 0L);
+        public int geodesCount() {
+            return resources.get(GEODE);
         }
 
         @Override
         public String toString() {
             return String.format("Minute %d\t- Robots %s\t- Resources %s", minutes, serialiseMap(robots), serialiseMap(resources));
+        }
+
+        public int potentialGeodesAt(int maxDuration) {
+            return resources.get(GEODE) + (maxDuration - minutes) * robots.get(GEODE);
         }
     }
 }

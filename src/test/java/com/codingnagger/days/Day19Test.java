@@ -6,7 +6,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.List;
+import java.util.Map;
 
+import static com.codingnagger.days.Day19.Blueprint.GEODE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class Day19Test {
@@ -30,11 +32,23 @@ class Day19Test {
 
         assertThat(result).isEqualTo(expectedQualityLevel);
     }
-    
+
+    @ParameterizedTest
+    @CsvSource({
+            "2, 5, 20, 24, 13",
+            "2, 9, 23, 24, 11",
+            "2, 9, 24, 24, 9",
+    })
+    void potentialGeodesAt(int robotCount, int resourceCount, int currentMinutes, int maxDuration, int expectedResult) {
+        var state = new Day19.State(Map.of(GEODE, robotCount), Map.of(GEODE, resourceCount), currentMinutes);
+
+        assertThat(state.potentialGeodesAt(maxDuration)).isEqualTo(expectedResult);
+    }
+
     @Test
     void partTwo() {
         String result = DAY.partTwo(INPUT);
 
-        assertThat(result).isEqualTo(null);
+        assertThat(result).isEqualTo((56 * 62) + "");
     }
 }
