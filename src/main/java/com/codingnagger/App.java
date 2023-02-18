@@ -1,7 +1,7 @@
 package com.codingnagger;
 
 import com.codingnagger.days.Day;
-import com.codingnagger.days.Day19;
+import com.codingnagger.days.Day20;
 import com.codingnagger.utils.InputLoader;
 
 import java.time.Instant;
@@ -14,9 +14,9 @@ public class App {
     public static void main(String[] args) {
         System.out.println("Advent of Code 2022");
 
-        List<String> input = InputLoader.Load("day19.txt");
+        List<String> input = InputLoader.Load("day20.txt");
 
-        Day day = new Day19();
+        Day day = new Day20();
 
         System.out.println("Part 1:");
         var partOneStart = Instant.now();
